@@ -30,6 +30,7 @@ export const SELECTORS = {
     LEFT_BODY: '#ptmt-leftBody',
     CENTER_BODY: '#ptmt-centerBody',
     RIGHT_BODY: '#ptmt-rightBody',
+    LAYOUT_MODE_PROMPT: '#ptmt-layout-mode-prompt',
     DROP_INDICATOR: '#ptmt-drop-indicator',
     SPLIT_OVERLAY: '#ptmt-split-overlay',
     STAGING_AREA: '#ptmt-staging-area',
@@ -94,6 +95,8 @@ export const LAYOUT = {
     DEFAULT_PANE_FLEX_BASIS_FULL: '1 1 100%',
     SETTINGS_PANEL_FLEX: '1 1 300px',
     RESIZER_WIDTH: 6, // matches CSS: .ptmt-resizer-vertical { flex: 0 0 6px }
+    MODE_PROMPT_MOBILE_MAX_WIDTH_PX: 1000,
+    MODE_PROMPT_DESKTOP_MIN_WIDTH_PX: 1050,
 };
 
 export const MESSAGES = {

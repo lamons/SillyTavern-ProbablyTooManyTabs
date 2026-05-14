@@ -1666,6 +1666,86 @@ body.ptmt-Theme-Sharp .ptmt-pane-grid.grid-vertical.flow-reversed .ptmt-tabStrip
   color: var(--ST-Main-Text);
 }
 
+.ptmt-layout-mode-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 10020;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: min(760px, calc(100vw - 24px));
+  padding: 12px 14px;
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--ST-LinkColor, var(--ST-Button-Background)), transparent 45%);
+  background: color-mix(in srgb, var(--ST-UI-Background), transparent 12%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(calc(var(--ST-Blur-Strength) * 1.2));
+}
+
+.ptmt-layout-mode-prompt-text {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ptmt-layout-mode-prompt-title {
+  color: var(--ST-Main-Text);
+}
+
+.ptmt-layout-mode-prompt-body {
+  color: var(--ptmt-adaptive-em);
+  font-size: 0.95em;
+  line-height: 1.35;
+}
+
+.ptmt-layout-mode-prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ptmt-layout-mode-prompt-action,
+.ptmt-layout-mode-prompt-dismiss {
+  margin: 0 !important;
+  border-radius: 0.65rem !important;
+}
+
+.ptmt-layout-mode-prompt-action {
+  background: color-mix(in srgb, var(--ST-LinkColor, var(--ST-Button-Background)), transparent 72%) !important;
+  border: 1px solid color-mix(in srgb, var(--ST-LinkColor, var(--ST-Button-Background)), transparent 45%) !important;
+}
+
+.ptmt-layout-mode-prompt-dismiss {
+  background: color-mix(in srgb, var(--ST-Button-Background), transparent 78%) !important;
+  border: 1px solid color-mix(in srgb, var(--ST-Main-Text), transparent 75%) !important;
+}
+
+@media (max-width: 700px) {
+  .ptmt-layout-mode-prompt {
+    bottom: 10px;
+    padding: 10px 12px;
+  }
+
+  .ptmt-layout-mode-prompt-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .ptmt-layout-mode-prompt-action,
+  .ptmt-layout-mode-prompt-dismiss {
+    flex: 1 1 150px;
+    justify-content: center;
+  }
+}
+
 .ptmt-reset-button {
   background: rgba(255, 107, 107, 0.15) !important;
   border: 1px solid rgba(255, 107, 107, 0.4) !important;

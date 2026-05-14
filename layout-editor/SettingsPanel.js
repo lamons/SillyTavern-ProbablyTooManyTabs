@@ -275,6 +275,7 @@ export function createSettingsPanel(manager) {
         createSettingCheckbox('Show Context Size Status Bar', 'showContextStatusBar'),
         createSettingCheckbox('Show World Info Status Bar', 'showWorldInfoStatusBar'),
         createSettingCheckbox('Sync Avatar with Expression', 'enableAvatarExpressionSync'),
+        createSettingCheckbox('Suggest Layout Switch on Width Mismatch', 'suggestLayoutSwitchOnViewportMismatch'),
         createSettingCheckbox('Hide on resize (Chrome)', 'hideContentWhileResizing'),
         createSettingCheckbox('Enable Message Rail', 'messageRailEnabled')
     );

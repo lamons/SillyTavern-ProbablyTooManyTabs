@@ -21,6 +21,7 @@ export class SettingsManager {
         runMoveBgDivs: true,
         moveBg1ToSheld: false,
         isMobile: false,
+        suggestLayoutSwitchOnViewportMismatch: true,
         hideContentWhileResizing: false,
         showContextStatusBar: true,
         showWorldInfoStatusBar: true,
@@ -431,6 +432,8 @@ export class SettingsManager {
     static getMobileLayout(sourceLayout) {
         if (!sourceLayout) return null;
         const layout = JSON.parse(JSON.stringify(sourceLayout));
+        layout.mode = 'mobile';
+        layout.showIconsOnly = true;
         layout.showLeft = false;
         layout.showRight = false;
         layout.columnSizes = {
@@ -488,6 +491,8 @@ export class SettingsManager {
     static getDesktopLayout(sourceLayout) {
         if (!sourceLayout) return null;
         const layout = JSON.parse(JSON.stringify(sourceLayout));
+        layout.mode = 'desktop';
+        layout.showIconsOnly = false;
         layout.showLeft = true;
         layout.showRight = true;
         layout.columnSizes = {

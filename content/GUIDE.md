@@ -54,6 +54,7 @@ Open the **Layout Settings** tab (🔧 wrench icon) to access all global control
 - **Auto-Open First Center Tab** — when all center-column tabs are collapsed, PTMT automatically opens the first one rather than leaving the center empty.
 - **Show Context Size Status Bar** — shows a coloured progress bar at the top of the center column indicating how many tokens are used (system, prompt, world info, chat, anchors, remaining).
 - **Sync Avatar with Expression** — mirrors the expression image updates to the character's tab icon.
+- **Suggest Layout Switch on Width Mismatch** — when the window enters SillyTavern's mobile-width range while PTMT is still in Desktop Layout (or returns to desktop width while PTMT is still in Mobile Layout), PTMT shows a prompt offering a one-click switch.
 - **Hide on Resize** — hides heavy content during column/pane resize to prevent browser rendering lag.
 
 ### 2. Global Style
@@ -79,7 +80,7 @@ This section controls the visual aesthetic of the extension without affecting yo
 
 ### Layout Actions
 
-- **Switch to Mobile Layout / Switch to Desktop Layout** — swaps between single-column mobile and full desktop mode. **Reloads the page.**
+- **Switch to Mobile Layout / Switch to Desktop Layout** — swaps between single-column mobile and full desktop mode. **Reloads the page.** PTMT can also suggest this automatically when the current window size clearly mismatches the active mode.
 - **Reset Layout to Default** — resets the tab arrangement to the built-in default. Your settings (theme, colours, etc.) are preserved. **Cannot be undone.**
 
 ---
@@ -223,6 +224,8 @@ This restores the default tab arrangement. Your theme, colours, and other settin
 ## Mobile Mode
 
 Click **Switch to Mobile Layout** in Layout Settings. PTMT collapses everything into a single-column, touch-friendly layout with icon-only tabs. Switch back with **Switch to Desktop Layout**. Both actions reload the page.
+
+If **Suggest Layout Switch on Width Mismatch** is enabled, PTMT will also show a prompt when the current viewport size strongly suggests the other mode, for example a narrow desktop window still using Desktop Layout or a wide window still using Mobile Layout.
 
 ---
 

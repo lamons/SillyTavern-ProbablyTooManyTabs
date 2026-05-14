@@ -2,7 +2,7 @@
 
 import { eventSource, event_types, characters, animation_duration, swipe, isSwipingAllowed } from '../../../../script.js';
 import { SWIPE_DIRECTION, SWIPE_SOURCE } from '../../../../scripts/constants.js';
-import { SELECTORS, EVENTS, MESSAGES } from './constants.js';
+import { SELECTORS, EVENTS, LAYOUT, MESSAGES } from './constants.js';
 import { power_user } from '../../../power-user.js';
 
 import { isDataURL } from '../../../utils.js';
@@ -94,6 +94,117 @@ function initRangeStyleSync() {
             }
         }
     );
+}
+
+// ─── Viewport Layout Suggestions ─────────────────────────────────────────────
+
+const viewportModePromptState = {
+    activeKey: null,
+    dismissed: new Set(),
+};
+
+function removeViewportModePrompt(recordDismissal = false) {
+    const prompt = document.querySelector(SELECTORS.LAYOUT_MODE_PROMPT);
+    if (prompt) prompt.remove();
+
+    if (recordDismissal && viewportModePromptState.activeKey) {
+        viewportModePromptState.dismissed.add(viewportModePromptState.activeKey);
+    }
+
+    viewportModePromptState.activeKey = null;
+}
+
+function getViewportWidth() {
+    return Math.round(window.innerWidth || document.documentElement?.clientWidth || 0);
+}
+
+function getViewportModeRecommendation() {
+    if (!settings.get('suggestLayoutSwitchOnViewportMismatch')) return null;
+
+    const width = getViewportWidth();
+    const isMobileMode = !!settings.get('isMobile');
+
+    if (!isMobileMode && width <= LAYOUT.MODE_PROMPT_MOBILE_MAX_WIDTH_PX) {
+        return {
+            key: 'mobile',
+            title: 'Narrow Window Detected',
+            body: `Window width is ${width}px. SillyTavern is in its mobile-style range, but PTMT is still using Desktop Layout.`,
+            actionLabel: 'Switch to Mobile Layout',
+        };
+    }
+
+    if (isMobileMode && width >= LAYOUT.MODE_PROMPT_DESKTOP_MIN_WIDTH_PX) {
+        return {
+            key: 'desktop',
+            title: 'Wide Window Detected',
+            body: `Window width is ${width}px. PTMT is still using Mobile Layout even though the viewport is back in desktop territory.`,
+            actionLabel: 'Switch to Desktop Layout',
+        };
+    }
+
+    return null;
+}
+
+function syncViewportModePrompt(api) {
+    const recommendation = getViewportModeRecommendation();
+    if (!recommendation) {
+        removeViewportModePrompt(false);
+        viewportModePromptState.dismissed.clear();
+        return;
+    }
+
+    if (viewportModePromptState.dismissed.has(recommendation.key)) {
+        return;
+    }
+
+    const existing = document.querySelector(SELECTORS.LAYOUT_MODE_PROMPT);
+    if (existing && viewportModePromptState.activeKey === recommendation.key) {
+        const titleEl = existing.querySelector('.ptmt-layout-mode-prompt-title');
+        const bodyEl = existing.querySelector('.ptmt-layout-mode-prompt-body');
+        if (titleEl) titleEl.textContent = recommendation.title;
+        if (bodyEl) bodyEl.textContent = `${recommendation.body} Switch now? This reloads the page.`;
+        return;
+    }
+
+    removeViewportModePrompt(false);
+    viewportModePromptState.activeKey = recommendation.key;
+
+    const title = el('strong', { className: 'ptmt-layout-mode-prompt-title' }, recommendation.title);
+    const body = el('span', { className: 'ptmt-layout-mode-prompt-body' }, `${recommendation.body} Switch now? This reloads the page.`);
+    const textWrap = el('div', { className: 'ptmt-layout-mode-prompt-text' }, title, body);
+
+    const switchBtn = el('button', {
+        className: 'menu_button menu_button_icon interactable ptmt-layout-mode-prompt-action',
+        type: 'button',
+        title: `${recommendation.actionLabel} (Reloads page)`,
+    }, recommendation.actionLabel);
+
+    const dismissBtn = el('button', {
+        className: 'menu_button menu_button_icon interactable ptmt-layout-mode-prompt-dismiss',
+        type: 'button',
+        title: 'Dismiss this suggestion until the window size changes back',
+    }, 'Dismiss');
+
+    switchBtn.addEventListener('click', () => api.toggleMobileMode());
+    dismissBtn.addEventListener('click', () => removeViewportModePrompt(true));
+
+    const actions = el('div', { className: 'ptmt-layout-mode-prompt-actions' }, switchBtn, dismissBtn);
+    const prompt = el('div', { id: SELECTORS.LAYOUT_MODE_PROMPT.substring(1), className: 'ptmt-layout-mode-prompt' }, textWrap, actions);
+    document.body.appendChild(prompt);
+}
+
+function initViewportModePrompt(api) {
+    removeViewportModePrompt(false);
+    viewportModePromptState.dismissed.clear();
+
+    const updatePrompt = debounce(() => syncViewportModePrompt(api), 160);
+    const handleResize = () => updatePrompt();
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    trackListener(window, 'resize', handleResize, { passive: true });
+
+    updatePrompt();
+    return updatePrompt;
 }
 
 // ─── Tab Strip Mode (Normal / Auto-Hide / Shy) ──────────────────────────────
@@ -267,10 +378,19 @@ function createApi(state) {
         toggleMobileMode: async () => {
             const currentSnapshot = generateLayoutSnapshot();
             const isMobile = settings.get('isMobile');
+            const nextIsMobile = !isMobile;
             const oldKey = isMobile ? 'savedLayoutMobile' : 'savedLayoutDesktop';
-            // When leaving mobile mode, reset showIconsOnly so desktop tabs restore their labels.
-            const extraUpdates = isMobile ? { showIconsOnly: false } : {};
-            await settings.update({ [oldKey]: currentSnapshot, isMobile: !isMobile, ...extraUpdates }, true);
+            const newKey = nextIsMobile ? 'savedLayoutMobile' : 'savedLayoutDesktop';
+            const targetSnapshot = settings.get(newKey) || (nextIsMobile
+                ? SettingsManager.getMobileLayout(currentSnapshot)
+                : SettingsManager.getDesktopLayout(currentSnapshot));
+            const extraUpdates = nextIsMobile ? { showIconsOnly: true } : { showIconsOnly: false };
+            await settings.update({
+                [oldKey]: currentSnapshot,
+                [newKey]: targetSnapshot,
+                isMobile: nextIsMobile,
+                ...extraUpdates
+            }, true);
             window.location.reload();
         },
         // ─── Theme Management ──────────────────────────────────────────────────────
@@ -379,6 +499,9 @@ function bindLayoutReactions(state, api, saveCurrentLayoutDebounced) {
         // Handle auto-hide tab strip setting
         if (state.updateTabStripMode) {
             state.updateTabStripMode();
+        }
+        if (state.updateViewportModePrompt) {
+            state.updateViewportModePrompt();
         }
         document.querySelectorAll(SELECTORS.PANE).forEach(checkPaneForIconMode);
         window.dispatchEvent(new CustomEvent(EVENTS.LAYOUT_CHANGED));
@@ -606,6 +729,7 @@ function postInit(state, applyOverrides) {
         moveToMovingDivs(['expression-plus-wrapper', 'charlib-embedded-container']);
         loadInitialLayout(api);
         postInit(state, applyOverrides);
+        state.updateViewportModePrompt = initViewportModePrompt(api);
         bindSwipeHandlers();
         bindAvatarClickOverride();
         initDemotionObserver(api);
